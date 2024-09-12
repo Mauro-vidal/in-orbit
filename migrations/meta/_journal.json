@@ -8,6 +8,13 @@
       "when": 1726111317289,
       "tag": "0000_stormy_onslaught",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1726112057508,
+      "tag": "0001_complete_wildside",
+      "breakpoints": true
     }
   ]
 }
