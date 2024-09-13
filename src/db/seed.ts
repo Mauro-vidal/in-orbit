@@ -3,8 +3,8 @@ import { goalCompletions, goals } from './schema'
 import dayjs from 'dayjs'
 
 async function seed() {
-  await db.delete(goalCompletions) //apaga todas as métas completas
-  await db.delete(goals) // apga as metas
+  await db.delete(goalCompletions)
+  await db.delete(goals)
 
   const result = await db
     .insert(goals)
@@ -18,12 +18,11 @@ async function seed() {
   const startOfWeek = dayjs().startOf('week')
 
   await db.insert(goalCompletions).values([
-    { goalId: result[0].id, createdAt: startOfWeek.toDate() }, // completou a meta na primeira semana
-    { goalId: result[1].id, createdAt: startOfWeek.add(1, 'day').toDate() }, // completou a meta na segunda semana
+    { goalId: result[0].id, createdAt: startOfWeek.toDate() },
+    { goalId: result[1].id, createdAt: startOfWeek.add(1, 'day').toDate() },
   ])
 }
 
-// fecha a conexão com o banco após executar a query
 seed().finally(() => {
   client.end()
 })

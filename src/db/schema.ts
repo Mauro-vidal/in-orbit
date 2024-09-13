@@ -1,5 +1,4 @@
-import { text, integer, timestamp } from 'drizzle-orm/pg-core'
-import { pgTable, PgTable } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, timestamp } from 'drizzle-orm/pg-core'
 import { createId } from '@paralleldrive/cuid2'
 
 export const goals = pgTable('goals', {
@@ -19,7 +18,7 @@ export const goalCompletions = pgTable('goal_completions', {
     .$defaultFn(() => createId()),
   goalId: text('goal_id')
     .references(() => goals.id)
-    .notNull(), // chave estrangeira referenciando tabela de metas
+    .notNull(),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
