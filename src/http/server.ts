@@ -4,9 +4,8 @@ import z from 'zod'
 
 const app = fastify()
 
+// post create
 app.post('/goals', async request => {
-  // método post create
-
   const createGoalSchema = z.object({
     title: z.string(),
     desiredWeeklyFrequency: z.number().int().min(1).max(7),
