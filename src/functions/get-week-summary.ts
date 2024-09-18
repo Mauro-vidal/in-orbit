@@ -1,4 +1,4 @@
-import { and, count, eq, gte, lte } from 'drizzle-orm'
+import { and, count, eq, gte, lte, sql } from 'drizzle-orm'
 import { db } from '../db'
 import { goalCompletions, goals } from '../db/schema'
 import dayjs from 'dayjs'
@@ -20,24 +20,52 @@ export async function getWeekSummary() {
       .where(lte(goals.createdAt, lastDayOfWeek))
   )
 
-  /*Metas já completas*/
-  const goalCompletionCounts = db.$with('goal_completion_counts').as(
+  /*Lista de Metas já completas*/
+  const goalsCompletedInWeek = db.$with('goal_completed_in_week').as(
     db
       .select({
-        goalId: goalCompletions.goalId,
-        completionCount: count(goalCompletions.id).as('completionCount'),
+        id: goalCompletions.id,
+        title: goals.title,
+        completedAt: goalCompletions.createdAt, //Data inteira com horário
+        completedAtDate: sql /*sql*/`
+          DATE(${goalCompletions.createdAt}) /*pega somente a data*/
+        `.as('completedAtDate'),
       })
       .from(goalCompletions)
+      .innerJoin(goals, eq(goals.id, goalCompletions.goalId))
       .where(
         and(
           gte(goalCompletions.createdAt, firstDayOfWeek),
           lte(goalCompletions.createdAt, lastDayOfWeek)
         )
       )
-      .groupBy(goalCompletions.goalId)
   )
 
+  // agrupar os dados pela data
+  const goalsCompletedByWeekDay = db.$with('goals_completed_by_week_day').as(
+    db
+      .select({
+        completedAtDate: goalsCompletedInWeek.completedAtDate,
+        completions: sql /*sql*/`
+          JSON_AGG( /*Vai exibir os dados em formato json*/
+            JSON_BUILD_OBJECT(
+              'id', ${goalsCompletedInWeek.id},
+              'title', ${goalsCompletedInWeek.title},
+              'completedAt', ${goalsCompletedInWeek.completedAt}
+            )
+          )
+        `.as('completions'),
+      })
+      .from(goalsCompletedInWeek)
+      .groupBy(goalsCompletedInWeek.completedAtDate)
+  )
+
+  const result = await db
+    .with(goalsCreatedUpToWeek, goalsCompletedInWeek, goalsCompletedByWeekDay)
+    .select()
+    .from(goalsCompletedByWeekDay)
+
   return {
-    summary: 'teste',
+    summary: result,
   }
 }
